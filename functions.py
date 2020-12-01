@@ -24,7 +24,9 @@ def write_csv(data,name):
 
     # Open a file for output
     # Overwrite
-    f = open("data/" + name + ".csv", "w") 
+    file_name = "data/" + name + ".csv"
+    print("writting file : "+file_name)
+    f = open(file_name, "w") 
     
     for row in data:
         output = ""
