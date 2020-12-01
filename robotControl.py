@@ -88,8 +88,8 @@ class robotControler:
         self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N,self.order_method,0,trajectory)
         self.call_ScrewTrajectory(state_place       ,state_init     ,tf,N,self.order_method,0,trajectory)
 
-
-        functions.write_csv(trajectory,"trajectory")
+        return trajectory
+        
 
     def call_ScrewTrajectory(self,start, end, tf, N,order_method,gripper_state,trajectory_list):
         """
@@ -130,6 +130,10 @@ class robotControler:
 
 
     def test_nextState(self):
+        """
+        test the next state function on scene 6
+        create 3 csv files forward,sideways,sideways
+        """
         #initial values 
         start = np.array([0,0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0])
         velocity_1    = np.array([0, 0,0,0,0,10,10,10,10]) 
@@ -171,33 +175,41 @@ class robotControler:
 
 
     def test_trajectory(self):
-        Tse_init = np.array([[1, 0, 0, 0],
-                            [0, 1, 0, 0],
-                            [0, 0, 1, 0.4],
-                            [0, 0, 0, 1,]])
+        """
+        Test the generate trajectory , USE SCENE 8
+        Tse_init     --> initial position of eef
+        Tsc_init     --> initial position of cube
+        Tsc_final    --> final   position of cube
+        Tce_grasp    --> eef grasping position
+        Tce_standoff --> use it go "above position" offset 
+        """
+        Tse_init = np.array([   [1, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 1, 0.4],
+                                [0, 0, 0, 1,]])
 
-        Tsc_init = np.array([[1, 0, 0, 1],
-                            [0, 1, 0, 0],
-                            [0, 0, 1, 0.025],
-                            [0, 0, 0, 1,]])
+        Tsc_init = np.array([   [1, 0, 0, 1],
+                                [0, 1, 0, 0],
+                                [0, 0, 1, 0.025],
+                                [0, 0, 0, 1,]])
 
-        Tsc_final = np.array([[0, 1, 0, 0],
-                            [-1, 0, 0, -1],
-                            [0, 0, 1, 0.025],
-                            [0, 0, 0, 1,]])
+        Tsc_final = np.array(   [[0, 1, 0, 0],
+                                [-1, 0, 0, -1],
+                                [0, 0, 1, 0.025],
+                                [0, 0, 0, 1,]])
 
-        Tce_grasp = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
-                            [0, 1, 0, 0],
-                            [-1/np.sqrt(2), 0, -1/np.sqrt(2), 0],
-                            [0, 0, 0, 1]])
+        Tce_grasp = np.array([  [-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
+                                [0, 1, 0, 0],
+                                [-1/np.sqrt(2), 0, -1/np.sqrt(2), 0],
+                                [0, 0, 0, 1]])
 
-        Tce_standoff = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), -.025],
-                            [0, 1, 0, 0],
-                            [-1/np.sqrt(2), 0, -1/np.sqrt(2), .025],
-                            [0, 0, 0, 1]])
+        Tce_standoff = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), -.15],
+                                [0, 1, 0, 0],
+                                [-1/np.sqrt(2), 0, -1/np.sqrt(2), .15],
+                                [0, 0, 0, 1]])
 
-        self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
-
+        trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
+        functions.write_csv(trajectory,"trajectory")
     def get_input(self,path):
         """
         read initial conditions for csv file
