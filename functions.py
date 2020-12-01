@@ -16,7 +16,7 @@ def display_init_conditions(init_conditions):
         print(init_conditions[i])
 
 
-def write_csv(data):
+def write_csv(data,name):
     """
     save data as csv file
     csv form chassis phi, chassis x, chassis y, J1, J2, J3, J4, J5, W1, W2, W3, W4, gripper state
@@ -24,7 +24,7 @@ def write_csv(data):
 
     # Open a file for output
     # Overwrite
-    f = open("trajectory.csv", "w") 
+    f = open("data/" + name + ".csv", "w") 
     
     for row in data:
         output = ""
