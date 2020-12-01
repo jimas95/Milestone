@@ -2,6 +2,7 @@ import numpy as np
 import csv
 import time
 import functions
+import modern_robotics as mr
 
 class robotControler:
 
@@ -23,6 +24,10 @@ class robotControler:
         #wheel length 
         self.l = 0.47/2 
         self.w = .3/2
+
+        #trajectory
+        self.order_method = 5
+        self.N = 200
 
 
     def next_state(self,input_state,velocity):
@@ -54,11 +59,55 @@ class robotControler:
         output_state[-1] = input_state[-1]
         return output_state
 
-    def TrajectoryGenerator(self):
+    def TrajectoryGenerator(self,Tse_init,Tsc_init,Tsc_final,Tce_grasp,Tce_standoff,N):
         """
+        The initial configuration of the end-effector in the reference trajectory: Tse,initial.
+        The cube's initial configuration: Tsc,initial.
+        The cube's desired final configuration: Tsc,final.
+        The end-effector's configuration relative to the cube when it is grasping the cube: Tce,grasp.
+        The end-effector's standoff configuration above the cube,
         """
-        pass
+        print("Generating trajectory....")
+        tf = 10
+        trajectory = [] 
 
+        state_init      = Tse_init
+        state_pregrasp  = np.matmul(Tsc_init,Tce_standoff)
+        state_grasp     = np.matmul(Tsc_init,Tce_grasp)
+        state_preplace  = np.matmul(Tsc_final,Tce_standoff)
+        state_place     = np.matmul(Tsc_final,Tce_grasp)
+        
+
+        self.call_ScrewTrajectory(state_init        ,state_pregrasp ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_pregrasp    ,state_grasp    ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_grasp       ,state_grasp    ,tf,N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_grasp       ,state_pregrasp ,tf,N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_pregrasp    ,state_preplace ,tf,N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_preplace    ,state_place    ,tf,N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_place       ,state_place    ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_place       ,state_init     ,tf,N,self.order_method,0,trajectory)
+
+
+        functions.write_csv(trajectory,"trajectory")
+
+    def call_ScrewTrajectory(self,start, end, tf, N,order_method,gripper_state,trajectory_list):
+        """
+        call the ScrewTrajectory from moder robotics
+            :param start: The initial end-effector configuration
+            :param end: The final end-effector configuration
+            :param Tf: Total time of the motion in seconds from rest to rest
+            :param N: The number of points N > 1 (Start and stop) in the discrete
+                    representation of the trajectory
+            :param method: The time-scaling method, where 3 indicates cubic (third-
+                        order polynomial) time scaling and 5 indicates quintic
+                        (fifth-order polynomial) time scaling
+            :return: The discretized trajectory as a list of N matrices in SE(3)
+                    separated in time by Tf/(N-1). The first in the list is Xstart
+                    and the Nth is Xend
+        """
+        trajectory = mr.ScrewTrajectory(start, end, tf, N, order_method) 
+        functions.convertToCsvForm(trajectory_list,trajectory,gripper_state)
 
     def feedback_control(self):
         """
@@ -74,6 +123,9 @@ class robotControler:
         if(id==1):
             print("Executing test nextState")
             self.test_nextState()
+        elif(id==2):
+            print("Executing test trajectory Generator")
+            self.test_trajectory()
 
 
 
@@ -116,6 +168,35 @@ class robotControler:
         functions.write_csv(data,"nextState_turn")
         print("last configuration -->")
         print(data[-1])
+
+
+    def test_trajectory(self):
+        Tse_init = np.array([[1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 0.4],
+                            [0, 0, 0, 1,]])
+
+        Tsc_init = np.array([[1, 0, 0, 1],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 0.025],
+                            [0, 0, 0, 1,]])
+
+        Tsc_final = np.array([[0, 1, 0, 0],
+                            [-1, 0, 0, -1],
+                            [0, 0, 1, 0.025],
+                            [0, 0, 0, 1,]])
+
+        Tce_grasp = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
+                            [0, 1, 0, 0],
+                            [-1/np.sqrt(2), 0, -1/np.sqrt(2), 0],
+                            [0, 0, 0, 1]])
+
+        Tce_standoff = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), -.025],
+                            [0, 1, 0, 0],
+                            [-1/np.sqrt(2), 0, -1/np.sqrt(2), .025],
+                            [0, 0, 0, 1]])
+
+        self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
 
     def get_input(self,path):
         """
