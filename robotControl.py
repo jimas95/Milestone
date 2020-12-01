@@ -20,7 +20,9 @@ class robotControler:
         #time step
         self.dt = 0.01
 
-
+        #wheel length 
+        self.l = 0.47/2 
+        self.w = .3/2
 
 
     def next_state(self,input_state,velocity):
@@ -42,10 +44,9 @@ class robotControler:
         #update state
         output_state = np.zeros(13)
         #update chassis configuration which is obtained from odometry
-        l = 0.47/2 
-        w = .3/2
-        
-        H_mat = np.array([[-1/(l+w), 1/(l+w), 1/(l+w), -1/(l+w)],[1,1,1,1],[-1,1,-1,1]])
+
+        wheel = self.w+self.l
+        H_mat = np.array([[-1/(wheel), 1/(wheel), 1/(wheel), -1/(wheel)],[1,1,1,1],[-1,1,-1,1]])
         output_state[0:3] = 0.0475/4. * np.matmul(H_mat, velocity[5:]) * self.dt + input_state[0:3]
         #update joints and wheels configuration
         output_state[3:12] = input_state[3:12] + np.array(velocity[:])*self.dt
