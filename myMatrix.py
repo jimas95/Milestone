@@ -37,3 +37,19 @@ class allMatrix:
                             [0,1,0,0],
                             [0,0,1,0.6546],
                             [0,0,0,1]])
+
+
+        #initial matrices for test_Feedforward_Control 
+        self.test_Xd = np.array([[0,0,1,0.5],
+                                [0,1,0,0],
+                                [-1,0,0,0.5],
+                                [0,0,0,1]])
+        self.test_Xd_next = np.array([[0,0,1,0.6],
+                                    [0,1,0,0],
+                                    [-1,0,0,0.3],
+                                    [0,0,0,1]])
+
+        self.test_X = np.array([[0.17, 0, 0.985, 0.387],
+                                [0, 1, 0 , 0],
+                                [-0.985, 0, .17, 0.57],
+                                [0, 0, 0, 1]])
