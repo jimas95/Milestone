@@ -3,7 +3,7 @@ import csv
 import time
 import functions
 import modern_robotics as mr
-
+import myMatrix
 class robotControler:
 
     def __init__(self):
@@ -14,6 +14,11 @@ class robotControler:
         self.get_input(path)
         functions.display_init_conditions(self.init_conditions)
 
+
+        #create object of all of our matrices we need
+        allMatrix = myMatrix.allMatrix()
+        
+        
         #velocity limits
         self.wheel_limit = 10
         self.joint_limit = 10
@@ -65,7 +70,7 @@ class robotControler:
         Kp_var = mr.se3ToVec(np.matmul(self.Kp,X_err))
         Ki_var = mr.se3ToVec(np.matmul(self.Ki,self.error_intergal))
         V = np.matmul(AdJoint_mat,Vd) + Kp_var + Ki_var
-        return V, mr.se3ToVec(Xerr)
+        return V, mr.se3ToVec(X_err)
 
 
     def calc_jacobian(self):
