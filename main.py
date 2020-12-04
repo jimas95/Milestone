@@ -14,4 +14,4 @@ from robotControl import robotControler
 if __name__ == "__main__":
     print("Hello World!")
     robot = robotControler()
-    robot.run(2)
+    robot.run(3)
