@@ -24,16 +24,54 @@ class robotControler:
         #wheel length 
         self.l = 0.47/2 
         self.w = .3/2
+        self.r = 0.0475
+
+        #Kp Ki control gains
+        self.Kp = 0
+        self.Ki = 0
+        #intergal error for Ki control
+        self.error_intergal = np.zeros((4,4))
 
         #trajectory
         self.order_method = 5
         self.N = 200
 
 
-    def Feedforward_Control(self):
-        pass
+
+    def Feedforward_Control(self,X,Xd,Xd_next):
+        """
+        calculate the joint velocitys 
+        based on the current eef configuration and the next(t+dt)  eef configuration
+        Input: 
+            The current actual end-effector configuration X
+            The current end-effector reference configuration Xd
+            The end-effector reference configuration at the next timestep in the reference trajectory,Xd_next at a time Δt later.
+        Return:
+            The eef twist and error
+        """
+        
+        #calculate X error 
+        X_err      = mr.MatrixLog6(np.matmul(mr.TransInv(X),Xd))
+        X_next_err = mr.MatrixLog6(np.matmul(mr.TransInv(Xd), Xd_next))
+
+        #calculate Vd
+        Vd = mr.se3ToVec(1/self.dt * X_next_err )
+
+        #calculate intergal error (kepp the sum in variable error_intergal)
+        self.error_intergal = self.error_intergal + X_err*self.dt
+
+        #calculate eef velocity twist 
+        AdJoint_mat = mr.Adjoint(np.matmul(mr.TransInv(X),Xd))
+        Kp_var = mr.se3ToVec(np.matmul(self.Kp,X_err))
+        Ki_var = mr.se3ToVec(np.matmul(self.Ki,self.error_intergal))
+        V = np.matmul(AdJoint_mat,Vd) + Kp_var + Ki_var
+        return V, mr.se3ToVec(Xerr)
+
 
     def calc_jacobian(self):
+        """
+        calculating the jacobian matrix 
+        """
         pass
 
     def next_state(self,input_state,velocity):
