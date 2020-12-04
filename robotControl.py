@@ -30,6 +30,12 @@ class robotControler:
         self.N = 200
 
 
+    def Feedforward_Control(self):
+        pass
+
+    def calc_jacobian(self):
+        pass
+
     def next_state(self,input_state,velocity):
         """
         Input :
@@ -126,8 +132,16 @@ class robotControler:
         elif(id==2):
             print("Executing test trajectory Generator")
             self.test_trajectory()
+        elif(id==3):
+            print("Executing test Feedforward Control")
+            self.test_Feedforward_Control()
 
 
+    def test_Feedforward_Control(self):
+        """
+        test the Feedforward_Control
+        """
+        pass
 
     def test_nextState(self):
         """
@@ -210,6 +224,7 @@ class robotControler:
 
         trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
         functions.write_csv(trajectory,"trajectory")
+
     def get_input(self,path):
         """
         read initial conditions for csv file
