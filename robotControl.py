@@ -16,7 +16,7 @@ class robotControler:
 
 
         #create object of all of our matrices we need
-        allMatrix = myMatrix.allMatrix()
+        self.allMatrix = myMatrix.allMatrix()
         
         
         #velocity limits
@@ -73,11 +73,34 @@ class robotControler:
         return V, mr.se3ToVec(X_err)
 
 
-    def calc_jacobian(self):
+    def calc_jacobian(self,q):
         """
         calculating the jacobian matrix 
         """
-        pass
+        T0e = mr.FKinBody(self.allMatrix.M0e,
+                          self.B_list_arm,
+                          q[3:])
+
+        Teb = np.matmul(mr.TransInv(T0e),mr.TransInv(Tb0))
+        l = 0.47/2 
+        w = .3/2
+        r = 0.0475
+
+        F6 = np.zeros((6,4))
+        F6[2:5] = r/4 * np.array([[-1/(l+w), 1/(l+w), 1/(l+w), -1/(l+w)],
+                            [1,1,1,1],
+                            [-1,1,-1,1]])
+
+        Ad = mr.Adjoint(Teb)
+        Jbase = np.matmul(Ad,F6)
+
+        Jarm = mr.JacobianBody(B_list_arm, q[3:])
+
+
+        Je = np.concatenate((Jbase, Jarm),1)
+        Je_pinv = np.linalg.pinv(Je,1e-4)
+
+        return Je_pinv, mr.TransInv(Teb)
 
     def next_state(self,input_state,velocity):
         """
@@ -99,8 +122,7 @@ class robotControler:
         output_state = np.zeros(13)
         #update chassis configuration which is obtained from odometry
 
-        wheel = self.w+self.l
-        H_mat = np.array([[-1/(wheel), 1/(wheel), 1/(wheel), -1/(wheel)],[1,1,1,1],[-1,1,-1,1]])
+        H_mat = self.allMatrix.H
         output_state[0:3] = 0.0475/4. * np.matmul(H_mat, velocity[5:]) * self.dt + input_state[0:3]
         #update joints and wheels configuration
         output_state[3:12] = input_state[3:12] + np.array(velocity[:])*self.dt
