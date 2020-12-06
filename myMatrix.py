@@ -47,11 +47,6 @@ class allMatrix:
 
 
 
-
-
-
-
-
 #       When the arm is at its home configuration, the screw axes
         self.Blist = np.array([ [0,0,0,0,0],
                                 [0,-1,-1,-1,0],
