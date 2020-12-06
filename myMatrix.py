@@ -41,7 +41,7 @@ class allMatrix:
                                 [0, 0, 0, 1]])
 
         self.Tce_standoff = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), -.15],
-                                [0, 1, 0, 0],
+                                [0, 1, 0, +0.01],
                                 [-1/np.sqrt(2), 0, -1/np.sqrt(2), .15],
                                 [0, 0, 0, 1]])
 
