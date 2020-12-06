@@ -158,10 +158,10 @@ class robotControler:
         
 
         self.call_ScrewTrajectory(state_init        ,state_pregrasp ,tf,N,self.order_method,0,trajectory)
-        self.call_ScrewTrajectory(state_pregrasp    ,state_grasp    ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_pregrasp    ,state_grasp    ,tf,2*N,self.order_method,0,trajectory)
         self.call_ScrewTrajectory(state_grasp       ,state_grasp    ,tf,N,self.order_method,1,trajectory)
         self.call_ScrewTrajectory(state_grasp       ,state_pregrasp ,tf,N,self.order_method,1,trajectory)
-        self.call_ScrewTrajectory(state_pregrasp    ,state_preplace ,tf,N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_pregrasp    ,state_preplace ,tf,3*N,self.order_method,1,trajectory)
         self.call_ScrewTrajectory(state_preplace    ,state_place    ,tf,N,self.order_method,1,trajectory)
         self.call_ScrewTrajectory(state_place       ,state_place    ,tf,N,self.order_method,0,trajectory)
         self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N,self.order_method,0,trajectory)
@@ -217,21 +217,14 @@ class robotControler:
 
     def pick_and_place(self):
         
-        Tse_init = self.allMatrix.Tse_init
         Tce_grasp =self.allMatrix.Tce_grasp
         Tce_standoff = self.allMatrix.Tce_standoff
             
-        Tse_init = np.array([[ 0, 0, 1, 0],
-                             [ 0, 1, 0, 0],
-                             [-1, 0, 0, 0.653],
-                             [ 0, 0, 0, 1,]])
-        # print(Tse_init)
         q0 = self.init_conditions[2]
         q_ref = self.init_conditions[3]
         _,Tbe = self.calc_jacobian(q=q_ref[:8])
         X = np.matmul(self.allMatrix.get_Tsb(q_ref),Tbe)
-        # print(X)
-        # Tse_init = X
+        Tse_init = X
 
         Tsc_init = self.allMatrix.get_matrix(self.init_conditions[0])
         Tsc_final = self.allMatrix.get_matrix(self.init_conditions[1])
