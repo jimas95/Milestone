@@ -200,26 +200,15 @@ class robotControler:
         """
         #calculate end effector position based on chassis configuration q, and arm thetalist 
         q0 = np.array([0,0,0,0,0,0.2,-1.6,0])
-        Xd = np.array([[0,0,1,0.5],
-                    [0,1,0,0],
-                    [-1,0,0,0.5],
-                    [0,0,0,1]])
-        Xd_next = np.array([[0,0,1,0.6],
-                    [0,1,0,0],
-                    [-1,0,0,0.3],
-                    [0,0,0,1]])
-
-        X = np.array([[0.17, 0, 0.985, 0.387],
-                    [0, 1, 0 , 0],
-                    [-0.985, 0, .17, 0.57],
-                    [0, 0, 0, 1]])
-
 
         self.Kp = np.zeros((4,4))
         self.Ki = np.zeros((4,4))
         self.dt = 0.01
 
-        vels,error = self.get_joint_vel(X,Xd,Xd_next,q0)
+        vels,error = self.get_joint_vel(self.allMatrix.test_X,
+                                        self.allMatrix.test_Xd,
+                                        self.allMatrix.test_Xd_next,
+                                        q0)
         vels = np.around(vels,4)
         print("Got joint velocity again -->")
         print(vels)
