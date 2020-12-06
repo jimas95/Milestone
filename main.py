@@ -1,5 +1,7 @@
 import csv
 from robotControl import robotControler
+import sys
+
 
 
 
@@ -14,5 +16,6 @@ from robotControl import robotControler
 
 if __name__ == "__main__":
     print("Hello World!")
+    id = int(sys.argv[1])
     robot = robotControler()
-    robot.run(5)
+    robot.run(id)
