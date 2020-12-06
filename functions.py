@@ -70,15 +70,13 @@ def check_limits(input_state,joint_limit,wheel_limit):
     check if any velocity exdeeds limits, if yes set the maximu velocity limit
     """
     for i in range(5):
-        if(input_state[i]>joint_limit):
-            input_state[i] = joint_limit
-        if(input_state[i]<-joint_limit):
-            input_state[i] = -joint_limit
+        velocity = abs(input_state[i])
+        if(velocity>joint_limit):
+            input_state[i] = input_state[i]/velocity*joint_limit
 
     for i in range(4,9):
-        if(input_state[i]>wheel_limit):
-            input_state[i] = wheel_limit
-        if(input_state[i]<-wheel_limit):
-            input_state[i] = -wheel_limit
+        velocity = abs(input_state[i])
+        if(velocity>wheel_limit):
+            input_state[i] = input_state[i]/velocity*wheel_limit
     return input_state
             
