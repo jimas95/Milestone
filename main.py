@@ -9,9 +9,10 @@ from robotControl import robotControler
 # /home/jimas95/workSpace/449_Robotic_Manipulation/Milestone/data/nextState_sideways.csv
 # /home/jimas95/workSpace/449_Robotic_Manipulation/Milestone/data/nextState_turn.csv
 # /home/jimas95/workSpace/449_Robotic_Manipulation/Milestone/data/trajectory.csv
+# /home/jimas95/workSpace/449_Robotic_Manipulation/Milestone/data/pick_place.csv
 
 
 if __name__ == "__main__":
     print("Hello World!")
     robot = robotControler()
-    robot.run(3)
+    robot.run(5)

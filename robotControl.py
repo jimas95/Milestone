@@ -34,6 +34,8 @@ class robotControler:
         #Kp Ki control gains
         self.Kp = np.identity(4) 
         self.Ki = np.zeros((4,4))
+        self.Kp = np.identity(4) * 30 
+        self.Ki = np.identity(4) * 0.1
         #intergal error for Ki control
         self.error_intergal = np.zeros((4,4))
 
@@ -192,13 +194,65 @@ class robotControler:
         elif(id==3):
             print("Executing test Feedforward Control")
             self.test_Feedforward_Control()
+        elif(id==4):
+            print("Executing pick and place!")
+            self.test_matrix_convert()
+        elif(id==5):
+            print("Executing pick and place!")
+            self.pick_and_place()
+
+
+    def pick_and_place(self):
+        
+        Tse_init = self.allMatrix.Tse_init
+        Tsc_init = self.allMatrix.Tsc_init
+        Tsc_final =self.allMatrix.Tsc_final
+        Tce_grasp =self.allMatrix.Tce_grasp
+        Tce_standoff = self.allMatrix.Tce_standoff
+
+        #generate trajectory
+        trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
+
+        #initialize
+        N = len(trajectory) -1
+        q0 = np.array([np.pi/6.,.2,-.2,
+                    0,0,0.2,0,0,
+                    0,0,0,0,
+                    0])
+
+        q0 = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0])
+        mapmpis = [np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13])]
+        q = mapmpis[-1]
+        print(q[:8])
+        print(q[3:])
+        data=[q0]
+        for i in range(N):
+            q = data[-1]
+            # print(i)
+            # _,Tbe = self.calc_jacobian(q=q[:8])
+            # #get matrices
+            
+            # X = np.matmul(self.allMatrix.get_Tsb(q),Tbe)
+            # Xd = self.allMatrix.list_to_array(trajectory[i])
+            # Xd_next = self.allMatrix.list_to_array(trajectory[i+1])
+
+            # #call feedForward Control
+            # Vel,_  = self.get_joint_vel(X,Xd,Xd_next,q=q[:8])
+            
+            #call next state 
+            Vel    = np.array([0, 0,0,0,0,-10,10,10,-10]) 
+            out = self.next_state(q,Vel)
+            data.append(out)
+
+        #save output at csv format
+        functions.write_csv(data,"pick_place")
+
 
 
     def test_Feedforward_Control(self):
         """
         test the Feedforward_Control
         """
-        #calculate end effector position based on chassis configuration q, and arm thetalist 
         q0 = np.array([0,0,0,0,0,0.2,-1.6,0])
 
         self.Kp = np.zeros((4,4))
@@ -269,33 +323,27 @@ class robotControler:
         Tce_grasp    --> eef grasping position
         Tce_standoff --> use it go "above position" offset 
         """
-        Tse_init = np.array([   [1, 0, 0, 0],
-                                [0, 1, 0, 0],
-                                [0, 0, 1, 0.4],
-                                [0, 0, 0, 1,]])
-
-        Tsc_init = np.array([   [1, 0, 0, 1],
-                                [0, 1, 0, 0],
-                                [0, 0, 1, 0.025],
-                                [0, 0, 0, 1,]])
-
-        Tsc_final = np.array(   [[0, 1, 0, 0],
-                                [-1, 0, 0, -1],
-                                [0, 0, 1, 0.025],
-                                [0, 0, 0, 1,]])
-
-        Tce_grasp = np.array([  [-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
-                                [0, 1, 0, 0],
-                                [-1/np.sqrt(2), 0, -1/np.sqrt(2), 0],
-                                [0, 0, 0, 1]])
-
-        Tce_standoff = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), -.15],
-                                [0, 1, 0, 0],
-                                [-1/np.sqrt(2), 0, -1/np.sqrt(2), .15],
-                                [0, 0, 0, 1]])
+        Tse_init = self.allMatrix.Tse_init
+        Tsc_init = self.allMatrix.Tsc_init
+        Tsc_final =self.allMatrix.Tsc_final
+        Tce_grasp =self.allMatrix.Tce_grasp
+        Tce_standoff = self.allMatrix.Tce_standoff
 
         trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
         functions.write_csv(trajectory,"trajectory")
+
+    def test_matrix_convert(self):
+        q = [0,1,2,3,4,5,6,7,8,9,10,11,12]
+        nothing = [] 
+        matri = self.allMatrix.list_to_array(q)
+        print(q)
+        print(matri)
+        functions.convertToCsvForm(nothing,[matri,matri],12)
+        print(nothing)
+        matri = self.allMatrix.list_to_array(nothing[-1])
+        print(matri)
+        functions.convertToCsvForm(nothing,[matri,matri],12)
+        print(nothing)       
 
     def get_input(self,path):
         """
