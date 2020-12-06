@@ -20,10 +20,10 @@ class allMatrix:
 
 
         #for trajecotry generation testing
-        self.Tse_init = np.array([   [1, 0, 0, 0],
-                                [0, 1, 0, 0],
-                                [0, 0, 1, 0.4],
-                                [0, 0, 0, 1,]])
+        self.Tse_init = np.array([  [1, 0, 0, 0],
+                                    [0, 1, 0, 0],
+                                    [0, 0, 1, 0.4],
+                                    [0, 0, 0, 1,]])
 
         self.Tsc_init = np.array([   [1, 0, 0, 1],
                                 [0, 1, 0, 0],
@@ -35,7 +35,7 @@ class allMatrix:
                                 [0, 0, 1, 0.025],
                                 [0, 0, 0, 1,]])
 
-        self.Tce_grasp = np.array([  [-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
+        self.Tce_grasp = np.array([[-1/np.sqrt(2), 0, 1/np.sqrt(2), 0],
                                 [0, 1, 0, 0],
                                 [-1/np.sqrt(2), 0, -1/np.sqrt(2), 0],
                                 [0, 0, 0, 1]])
@@ -103,3 +103,9 @@ class allMatrix:
                                 [0,0,0,1]])
         return Tsb
 
+    def get_matrix(self,q):
+        T = np.array([[np.cos(q[3]),-np.sin(q[3]),0,q[0]],
+                        [np.sin(q[3]),np.cos(q[3]),0,q[1]],
+                        [0,0,1,q[2]],
+                        [0,0,0,1]])
+        return T   
