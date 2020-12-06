@@ -217,17 +217,21 @@ class robotControler:
 
     def pick_and_place(self):
         
-        Tce_grasp =self.allMatrix.Tce_grasp
-        Tce_standoff = self.allMatrix.Tce_standoff
-            
+
+        #get initial current configuration    
         q0 = self.init_conditions[2]
+
+        #get refference current configuration & find eef position
         q_ref = self.init_conditions[3]
         _,Tbe = self.calc_jacobian(q=q_ref[:8])
-        X = np.matmul(self.allMatrix.get_Tsb(q_ref),Tbe)
-        Tse_init = X
+        Tse_init = np.matmul(self.allMatrix.get_Tsb(q_ref),Tbe)
 
+        #get initial cube position and placing postion
         Tsc_init = self.allMatrix.get_matrix(self.init_conditions[0])
         Tsc_final = self.allMatrix.get_matrix(self.init_conditions[1])
+
+        #pregrasping and stanoff positions
+        Tce_grasp =self.allMatrix.Tce_grasp
         Tce_standoff = self.allMatrix.Tce_standoff
 
 
@@ -239,11 +243,6 @@ class robotControler:
         #initialize
         N = len(trajectory) -1        
         error_list = []
-
-        # q0 = np.array([np.pi/6.,.2,-.2,
-        #                 0,0,0.2,0,0,
-        #                 0,0,0,0,
-        #                 0])
 
         # self.Kp = np.zeros((4,4))
         # self.Ki = np.zeros((4,4))
@@ -258,8 +257,7 @@ class robotControler:
             X = np.matmul(self.allMatrix.get_Tsb(q),Tbe)
             Xd = self.allMatrix.list_to_array(trajectory[i])
             Xd_next = self.allMatrix.list_to_array(trajectory[i+1])
-            # Xd = Te_traj[i,:,:]
-            # Xd_next = Te_traj[i+1,:,:]
+
             #call feedForward Control
             Vel,error  = self.get_joint_vel(X,Xd,Xd_next,q=q[:8])
             error_list.append(error) # keep a list with all errors
