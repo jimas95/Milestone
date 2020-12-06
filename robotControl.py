@@ -4,6 +4,19 @@ import time
 import functions
 import modern_robotics as mr
 import myMatrix
+import matplotlib.pyplot as plt
+
+
+import logging
+logger = logging.getLogger("my_log")
+handler = logging.FileHandler('best.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+
+
 class robotControler:
 
     def __init__(self):
@@ -20,8 +33,8 @@ class robotControler:
         
         
         #velocity limits
-        self.wheel_limit = 10
-        self.joint_limit = 10
+        self.wheel_limit = 5
+        self.joint_limit = 5
 
         #time step
         self.dt = 0.01
@@ -32,9 +45,9 @@ class robotControler:
         self.r = 0.0475
 
         #Kp Ki control gains
-        self.Kp = np.identity(4) 
+        self.Kp = np.zeros((4,4))
         self.Ki = np.zeros((4,4))
-        self.Kp = np.identity(4) * 30 
+        self.Kp = np.identity(4) * 3
         self.Ki = np.identity(4) * 0.1
         #intergal error for Ki control
         self.error_intergal = np.zeros((4,4))
@@ -110,16 +123,17 @@ class robotControler:
         """
         
         
-        #check velocity limits 
+        # #check velocity limits 
         velocity = functions.check_limits(velocity,self.joint_limit,self.wheel_limit)
         #update state
         output_state = np.zeros(13)
         #update chassis configuration which is obtained from odometry
 
         H_mat = self.allMatrix.H
-        output_state[0:3] = 0.0475/4. * np.matmul(H_mat, velocity[5:]) * self.dt + input_state[0:3]
+        output_state[0:3] = 0.0475/4. * np.matmul(H_mat, velocity[:4]) * self.dt + input_state[0:3]
         #update joints and wheels configuration
-        output_state[3:12] = input_state[3:12] + np.array(velocity[:])*self.dt
+        output_state[3:8] = input_state[3:8] + velocity[4:] * self.dt #arm velocities second part of thetadot
+        output_state[8:12] = input_state[8:12] + velocity[:4] * self.dt #expects wheel velocity as first part       
         #copy gripper state
         output_state[-1] = input_state[-1]
         return output_state
@@ -151,7 +165,7 @@ class robotControler:
         self.call_ScrewTrajectory(state_preplace    ,state_place    ,tf,N,self.order_method,1,trajectory)
         self.call_ScrewTrajectory(state_place       ,state_place    ,tf,N,self.order_method,0,trajectory)
         self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N,self.order_method,0,trajectory)
-        self.call_ScrewTrajectory(state_place       ,state_init     ,tf,N,self.order_method,0,trajectory)
+        # self.call_ScrewTrajectory(state_preplace    ,state_init     ,tf,N,self.order_method,0,trajectory)
 
         return trajectory
         
@@ -174,10 +188,6 @@ class robotControler:
         trajectory = mr.ScrewTrajectory(start, end, tf, N, order_method) 
         functions.convertToCsvForm(trajectory_list,trajectory,gripper_state)
 
-    def feedback_control(self):
-        """
-        """
-        pass
 
     def run(self,id):
         """
@@ -200,52 +210,95 @@ class robotControler:
         elif(id==5):
             print("Executing pick and place!")
             self.pick_and_place()
+        elif(id==6):
+            print("Executing pick and place!")
+            # self.sakis()
 
 
     def pick_and_place(self):
         
         Tse_init = self.allMatrix.Tse_init
-        Tsc_init = self.allMatrix.Tsc_init
-        Tsc_final =self.allMatrix.Tsc_final
         Tce_grasp =self.allMatrix.Tce_grasp
         Tce_standoff = self.allMatrix.Tce_standoff
+            
+        Tse_init = np.array([[ 0, 0, 1, 0],
+                             [ 0, 1, 0, 0],
+                             [-1, 0, 0, 0.653],
+                             [ 0, 0, 0, 1,]])
+        # print(Tse_init)
+        q0 = self.init_conditions[2]
+        q_ref = self.init_conditions[3]
+        _,Tbe = self.calc_jacobian(q=q_ref[:8])
+        X = np.matmul(self.allMatrix.get_Tsb(q_ref),Tbe)
+        # print(X)
+        # Tse_init = X
 
+        Tsc_init = self.allMatrix.get_matrix(self.init_conditions[0])
+        Tsc_final = self.allMatrix.get_matrix(self.init_conditions[1])
+        Tce_standoff = self.allMatrix.Tce_standoff
+
+
+            
         #generate trajectory
         trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
+        functions.write_csv(trajectory,"trajectory_")
 
         #initialize
-        N = len(trajectory) -1
-        q0 = np.array([np.pi/6.,.2,-.2,
-                    0,0,0.2,0,0,
-                    0,0,0,0,
-                    0])
+        N = len(trajectory) -1        
+        error_list = []
 
-        q0 = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0])
-        mapmpis = [np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13])]
-        q = mapmpis[-1]
-        print(q[:8])
-        print(q[3:])
+        # q0 = np.array([np.pi/6.,.2,-.2,
+        #                 0,0,0.2,0,0,
+        #                 0,0,0,0,
+        #                 0])
+
+        # self.Kp = np.zeros((4,4))
+        # self.Ki = np.zeros((4,4))
+
         data=[q0]
         for i in range(N):
+            #set current configuration
             q = data[-1]
-            # print(i)
-            # _,Tbe = self.calc_jacobian(q=q[:8])
-            # #get matrices
             
-            # X = np.matmul(self.allMatrix.get_Tsb(q),Tbe)
-            # Xd = self.allMatrix.list_to_array(trajectory[i])
-            # Xd_next = self.allMatrix.list_to_array(trajectory[i+1])
+            #get matrices
+            _,Tbe = self.calc_jacobian(q=q[:8])
+            X = np.matmul(self.allMatrix.get_Tsb(q),Tbe)
+            Xd = self.allMatrix.list_to_array(trajectory[i])
+            Xd_next = self.allMatrix.list_to_array(trajectory[i+1])
+            # Xd = Te_traj[i,:,:]
+            # Xd_next = Te_traj[i+1,:,:]
+            #call feedForward Control
+            Vel,error  = self.get_joint_vel(X,Xd,Xd_next,q=q[:8])
+            error_list.append(error) # keep a list with all errors
+            
+            #copy gripper state
+            q[-1]=trajectory[i][-1]
 
-            # #call feedForward Control
-            # Vel,_  = self.get_joint_vel(X,Xd,Xd_next,q=q[:8])
-            
             #call next state 
-            Vel    = np.array([0, 0,0,0,0,-10,10,10,-10]) 
             out = self.next_state(q,Vel)
             data.append(out)
 
         #save output at csv format
         functions.write_csv(data,"pick_place")
+        self.plotter(error_list)
+
+
+
+    def plotter(self,error):
+        """
+        plot and save the total error
+        """
+        total_time = round(len(error)*self.dt,5)
+        tvec = np.arange(0,total_time,self.dt)
+        np_error = np.array(error)
+        for i in range(6):
+            plt.plot(tvec,np_error[:,i])
+        plt.legend(['w_x','w_y','w_z','v_x','v_y','v_z'])
+        plt.title("error over time")
+        plt.ylabel("error")
+        plt.xlabel("time [s]") 
+        plt.savefig('error.png')
+        plt.show()
 
 
 
