@@ -1,0 +1,27 @@
+2020-12-06 17:10:29,153 INFO init robot Controler
+2020-12-06 17:10:29,153 INFO Reading initial conditions.....
+2020-12-06 17:10:29,354 INFO Reading initial conditions Done
+2020-12-06 17:10:29,454 INFO  
+2020-12-06 17:10:29,455 INFO the initial resting configuration of the cube object 
+2020-12-06 17:10:29,455 INFO [1.0, 0.0, 0.025, 0.0]
+2020-12-06 17:10:29,455 INFO  
+2020-12-06 17:10:29,455 INFO the desired final resting configuration of the cube object
+2020-12-06 17:10:29,455 INFO [0.0, -1.0, 0.025, -1.5708]
+2020-12-06 17:10:29,455 INFO  
+2020-12-06 17:10:29,455 INFO the actual initial configuration of the youBot
+2020-12-06 17:10:29,456 INFO [0.5236, 0.2, -0.2, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+2020-12-06 17:10:29,456 INFO  
+2020-12-06 17:10:29,456 INFO the reference initial configuration of the youBot
+2020-12-06 17:10:29,456 INFO [0.5236, -0.2, -0.2, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.5, 0.5, 0.0]
+2020-12-06 17:10:29,456 INFO creating matrices
+2020-12-06 17:10:29,456 INFO Executing Run.....
+2020-12-06 17:10:29,457 INFO Executing pick and place!
+2020-12-06 17:10:29,457 INFO Initializing values
+2020-12-06 17:10:29,462 INFO Generating trajectory....
+2020-12-06 17:10:29,936 INFO writting file : data/trajectory.csv
+2020-12-06 17:10:29,957 INFO Starting simulation
+2020-12-06 17:10:38,770 INFO Simulation ended
+2020-12-06 17:10:38,770 INFO Saving output files
+2020-12-06 17:10:38,770 INFO writting file : data/error.csv
+2020-12-06 17:10:38,786 INFO writting file : data/pick_place.csv
+2020-12-06 17:10:38,816 INFO Creating graph of error
