@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import logging
 logger = logging.getLogger("my_log")
-handler = logging.FileHandler('best.log')
+handler = logging.FileHandler('logger.info')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -21,14 +21,17 @@ class robotControler:
 
     def __init__(self):
         print("init robot Controler")
+        logger.info("init robot Controler")
 
         path = "input.csv"
         self.init_conditions = []
         self.get_input(path)
-        functions.display_init_conditions(self.init_conditions)
+        functions.display_init_conditions(self.init_conditions,logger)
 
 
         #create object of all of our matrices we need
+        print("creating matrices")
+        logger.info("creating matrices")
         self.allMatrix = myMatrix.allMatrix()
         
         
@@ -147,6 +150,7 @@ class robotControler:
         The end-effector's standoff configuration above the cube,
         """
         print("Generating trajectory....")
+        logger.info("Generating trajectory....")
         tf = 10
         trajectory = [] 
 
@@ -157,14 +161,14 @@ class robotControler:
         state_place     = np.matmul(Tsc_final,Tce_grasp)
         
 
-        self.call_ScrewTrajectory(state_init        ,state_pregrasp ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_init        ,state_pregrasp ,tf,N  ,self.order_method,0,trajectory)
         self.call_ScrewTrajectory(state_pregrasp    ,state_grasp    ,tf,2*N,self.order_method,0,trajectory)
-        self.call_ScrewTrajectory(state_grasp       ,state_grasp    ,tf,N,self.order_method,1,trajectory)
-        self.call_ScrewTrajectory(state_grasp       ,state_pregrasp ,tf,N,self.order_method,1,trajectory)
-        self.call_ScrewTrajectory(state_pregrasp    ,state_preplace ,tf,3*N,self.order_method,1,trajectory)
-        self.call_ScrewTrajectory(state_preplace    ,state_place    ,tf,N,self.order_method,1,trajectory)
-        self.call_ScrewTrajectory(state_place       ,state_place    ,tf,N,self.order_method,0,trajectory)
-        self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_grasp       ,state_grasp    ,tf,100,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_grasp       ,state_pregrasp ,tf,N  ,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_pregrasp    ,state_preplace ,tf,4*N,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_preplace    ,state_place    ,tf,N  ,self.order_method,1,trajectory)
+        self.call_ScrewTrajectory(state_place       ,state_place    ,tf,100,self.order_method,0,trajectory)
+        self.call_ScrewTrajectory(state_place       ,state_preplace ,tf,N  ,self.order_method,0,trajectory)
         # self.call_ScrewTrajectory(state_preplace    ,state_init     ,tf,N,self.order_method,0,trajectory)
 
         return trajectory
@@ -194,30 +198,33 @@ class robotControler:
         runs the whole thing....
         """
         print("Executing Run.....")
-
+        logger.info("Executing Run.....")
         if(id==1):
             print("Executing test nextState")
+            logger.info("Executing test nextState")
             self.test_nextState()
         elif(id==2):
             print("Executing test trajectory Generator")
+            logger.info("Executing test trajectory Generator")
             self.test_trajectory()
         elif(id==3):
             print("Executing test Feedforward Control")
+            logger.info("Executing test Feedforward Control")
             self.test_Feedforward_Control()
         elif(id==4):
-            print("Executing pick and place!")
+            print("Executing test matrix convert!")
+            logger.info("Executing test matrix convert!")
             self.test_matrix_convert()
         elif(id==5):
             print("Executing pick and place!")
+            logger.info("Executing pick and place!")
             self.pick_and_place()
-        elif(id==6):
-            print("Executing pick and place!")
-            # self.sakis()
+
 
 
     def pick_and_place(self):
         
-
+        logger.info("Initializing values")
         #get initial current configuration    
         q0 = self.init_conditions[2]
 
@@ -238,7 +245,7 @@ class robotControler:
             
         #generate trajectory
         trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
-        functions.write_csv(trajectory,"trajectory_")
+        functions.write_csv(trajectory,"trajectory",logger)
 
         #initialize
         N = len(trajectory) -1        
@@ -248,6 +255,7 @@ class robotControler:
         # self.Ki = np.zeros((4,4))
 
         data=[q0]
+        logger.info("Starting simulation")
         for i in range(N):
             #set current configuration
             q = data[-1]
@@ -268,9 +276,11 @@ class robotControler:
             #call next state 
             out = self.next_state(q,Vel)
             data.append(out)
-
+        logger.info("Simulation ended")
+        logger.info("Saving output files")
         #save output at csv format
-        functions.write_csv(data,"pick_place")
+        functions.write_csv(error_list,"error",logger)
+        functions.write_csv(data,"pick_place",logger)
         self.plotter(error_list)
 
 
@@ -279,6 +289,7 @@ class robotControler:
         """
         plot and save the total error
         """
+        logger.info("Creating graph of error")
         total_time = round(len(error)*self.dt,5)
         tvec = np.arange(0,total_time,self.dt)
         np_error = np.array(error)
@@ -312,6 +323,10 @@ class robotControler:
         print(vels)
         print("error:")
         print(error)
+        logger.info("Got joint velocity again -->")
+        logger.info(vels)
+        logger.info("error:")
+        logger.info(error)
 
     def test_nextState(self):
         """
@@ -327,35 +342,45 @@ class robotControler:
         #test of forward
         data = []
         print("Executing nextState forward")
+        logger.info("Executing nextState forward")
         out = self.next_state(start,velocity_1)
         for i in range(100):
             out = self.next_state(out,velocity_1)
             data.append(out)
-        functions.write_csv(data,"nextState_forward")
+        functions.write_csv(data,"nextState_forward",logger)
         print("last configuration -->")
         print(data[-1])
+        logger.info("last configuration -->")
+        logger.info(data[-1])
         data = []
 
         #test of sideways
         print("Executing nextState sideways")
+        logger.info("Executing nextState sideways")
+
         out = self.next_state(start,velocity_2)
         for i in range(100):
             out = self.next_state(out,velocity_2)
             data.append(out)
-        functions.write_csv(data,"nextState_sideways")
+        functions.write_csv(data,"nextState_sideways",logger)
         print("last configuration -->")
         print(data[-1])
+        logger.info("last configuration -->")
+        logger.info(data[-1])
 
         #test of turning
         data = []
         print("Executing nextState turn")
+        logger.info("Executing nextState turn")
         out = self.next_state(start,velocity_3)
         for i in range(100):
             out = self.next_state(out,velocity_3)
             data.append(out)
-        functions.write_csv(data,"nextState_turn")
+        functions.write_csv(data,"nextState_turn",logger)
         print("last configuration -->")
         print(data[-1])
+        logger.info("last configuration -->")
+        logger.info(data[-1])
 
 
     def test_trajectory(self):
@@ -374,7 +399,7 @@ class robotControler:
         Tce_standoff = self.allMatrix.Tce_standoff
 
         trajectory = self.TrajectoryGenerator(Tse_init, Tsc_init, Tsc_final, Tce_grasp, Tce_standoff,self.N)
-        functions.write_csv(trajectory,"trajectory")
+        functions.write_csv(trajectory,"trajectory",logger)
 
     def test_matrix_convert(self):
         q = [0,1,2,3,4,5,6,7,8,9,10,11,12]
@@ -382,18 +407,24 @@ class robotControler:
         matri = self.allMatrix.list_to_array(q)
         print(q)
         print(matri)
+        logger.info(q)
+        logger.info(matri)
         functions.convertToCsvForm(nothing,[matri,matri],12)
         print(nothing)
+        logger.info(nothing)
         matri = self.allMatrix.list_to_array(nothing[-1])
         print(matri)
+        logger.info(matri)
         functions.convertToCsvForm(nothing,[matri,matri],12)
-        print(nothing)       
+        print(nothing)    
+        logger.info(nothing)   
 
     def get_input(self,path):
         """
         read initial conditions for csv file
         """
         print("Reading initial conditions.....")
+        logger.info("Reading initial conditions.....")
         with open(path, newline='') as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar=',')
 
@@ -402,5 +433,6 @@ class robotControler:
                 self.init_conditions.append(temp_list)
         time.sleep(0.2)
         print("Reading initial conditions Done")
+        logger.info("Reading initial conditions Done")
         time.sleep(0.1)
 

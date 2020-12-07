@@ -1,22 +1,28 @@
-def display_init_conditions(init_conditions):
+def display_init_conditions(init_conditions,logger):
     """
     display the initial conditions
     """
 
     for i in range(len(init_conditions)):
         print(" ")
+        logger.info(" ")
         if i==0:
             print("the initial resting configuration of the cube object ")
+            logger.info("the initial resting configuration of the cube object ")
         elif i==1:
             print("the desired final resting configuration of the cube object")
+            logger.info("the desired final resting configuration of the cube object")
         elif i==2:
             print("the actual initial configuration of the youBot")
+            logger.info("the actual initial configuration of the youBot")
         elif i==3:
             print("the reference initial configuration of the youBot")
+            logger.info("the reference initial configuration of the youBot")
         print(init_conditions[i])
+        logger.info(init_conditions[i])
 
 
-def write_csv(data,name):
+def write_csv(data,name,logger):
     """
     save data as csv file
     for robot state:
@@ -29,6 +35,8 @@ def write_csv(data,name):
     # Overwrite
     file_name = "data/" + name + ".csv"
     print("writting file : "+file_name)
+    logger.info("writting file : "+file_name)
+
     f = open(file_name, "w") 
     
     for row in data:

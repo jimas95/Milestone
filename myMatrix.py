@@ -5,7 +5,6 @@ import numpy as np
 class allMatrix:
 
     def __init__(self):
-        print("creating matrices")
         self.l = 0.47/2 
         self.w = .3/2
         self.r = 0.0475
