@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import logging
 logger = logging.getLogger("my_log")
-handler = logging.FileHandler('logger.info')
+handler = logging.FileHandler('data/logger.info')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -299,7 +299,7 @@ class robotControler:
         plt.title("error over time")
         plt.ylabel("error")
         plt.xlabel("time [s]") 
-        plt.savefig('error.png')
+        plt.savefig('data/error.png')
         plt.show()
 
 
