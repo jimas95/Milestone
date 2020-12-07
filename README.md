@@ -10,9 +10,9 @@ Write software that plans and executes a trajectory for the youBot mobile manipu
 The goal is to grab a cube and place it in a different position.
 
 # Architecture 
-For the similation part we used Coppelia Simulator, you can download the scened from the link.
-1. The input of the program is:
-the initial resting configuration of the cube object (which has a known geometry), represented by a frame attached to the center of the object
+For the similation part we used Coppelia Simulator, you can download the scene from the link. For the kinematics and robot manipulation ModernRobotics library is being used.
+The input of the program is:
+1.the initial resting configuration of the cube object (which has a known geometry), represented by a frame attached to the center of the object
 2. the desired final resting configuration of the cube object
 3. the actual initial configuration of the youBot
 4. the reference initial configuration of the youBot (which will generally be different from the actual initial configuration, to allow us to test feedback control)
@@ -28,6 +28,8 @@ Input arguments are given from the `input.csv` file in the format of :
 1. GenerateTrajectory : Given the cube initial,desired position and eef initial position we create a trajectory.
 2. nextState : calculates the next configuration state given the current configuration state, joints velocitys and time step dt.
 3. Feedforward_Control calculates the joint velocitys(with no limits) given the current state where we wanted to be and where we want to go after dt.
+
+In more detail about the Architecture of the code. `python main.py` if the file that starts the program and take an input argument for which case to execute. `robotControl.py` is a class that handles the important stuff such as generate trajectory,nextState , feedforward Control. `functions.py` is a file contaiing helpfull functions such as writting the csv file. Finaly the last file is `myMatrix` is a class containg all matrixes that we are using and help functions such as going from lists to matrix etc.
 
 # Execute program
 Navigate to code directory and execute : `<python main.py id>`
